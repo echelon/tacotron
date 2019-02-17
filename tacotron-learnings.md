@@ -495,6 +495,82 @@ Segmentation fault (core dumped)
 Need reboot?
 
 
+Well, that ruined the graphics again. Hello resolution from 1995. 
 
+The tensorflow import still segfaults, too.
 
+Ubuntu has an update! Suggests CUDA 10, etc.
 
+Broken package manager:
+
+```
+apt-get install -f
+Transaction failed: The package system is broken
+ The following packages have unmet dependencies:
+
+cuda-drivers: Depends: nvidia-410 (>= 410.79) but it is not installed
+              Depends: libopencl1 but it is a virtual package
+libcuda1-410: Depends: nvidia-410 (>= 410.79) but it is not installed
+nvidia-410-dev: Depends: nvidia-410 (>= 410.79) but it is not installed
+nvidia-opencl-icd-410: Depends: nvidia-410 (>= 410.79) but it is not installed
+```
+
+Things are *really* broken. 
+
+- Ubuntu software update won't work.
+- Ubuntu System prefs install of NVIDA drivers won't work
+- sudo --fix-install (or whatever)
+- sudo dpkg (the broken package) - just fails
+
+Trying this:
+- Did a force remove, sudo apt-get purge cuda (uninstalls!)
+- software updater -> fails
+- Additional Drivers -> NVIDA meta package (stays selected!)
+- software updater for nvidia-kernel (randomly popped up) (worked)
+- reboot
+
+Reboot brought back nice gfx, sound.
+python -> "import tensorflow" worked!!!
+
+Preprocess works!
+
+Trying training:
+
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 python train.py --hparams="max_iters=400" 
+
+preprocess doesn't actually work. subtle bug
+
+GPU is present in tensorflow. 
+
+```
+>>> import tensorflow as tf
+>>> tf.test.gpu_device_name()
+2019-02-17 07:24:52.255861: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2019-02-17 07:24:52.500751: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties:
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.6705
+pciBusID: 0000:65:00.0
+totalMemory: 10.91GiB freeMemory: 10.46GiB
+2019-02-17 07:24:52.500780: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2019-02-17 07:24:52.688035: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-17 07:24:52.688071: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0
+2019-02-17 07:24:52.688076: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N
+2019-02-17 07:24:52.688252: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/device:GPU:0 with 10123
+MB memory) -> physical GPU (device: 0, name: GeForce GTX 1080 Ti, pci bus id: 0000:65:00.0, compute capability: 6.1)
+'/device:GPU:0'
+```
+
+Maybe this is the problem:
+
+```
+bt@halide:~/dev/audio-samples$ python -c "import tensorflow; print(tensorflow.__version__)"
+
+1.8.0
+```
+
+Ugh, requirements fixes:
+
+```
+pip3 install -r requirements.txt
+```
+
+Training works now.

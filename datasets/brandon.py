@@ -28,10 +28,10 @@ def build_from_path(in_dir, out_dir, num_workers=1, tqdm=lambda x: x):
       parts = line.strip().split('|')
       wav_path = os.path.join(in_dir, 'wavs', '%s.wav' % parts[0])
       text = parts[2]
-      #print("\n\n")
-      #print(parts)
-      #print(wav_path)
-      #print(text)
+      print("\n\n")
+      print(parts)
+      print(wav_path)
+      print(text)
       futures.append(executor.submit(partial(_process_utterance, out_dir, index, wav_path, text)))
       index += 1
   return [future.result() for future in tqdm(futures)]
@@ -56,6 +56,7 @@ def _process_utterance(out_dir, index, wav_path, text):
   # Load the audio to a numpy array:
   print("Load wav :" + wav_path)
   wav = audio.load_wav(wav_path)
+  print('wav: ' + wav)
 
   # Compute the linear-scale spectrogram from the wav:
   spectrogram = audio.spectrogram(wav).astype(np.float32)
@@ -65,8 +66,8 @@ def _process_utterance(out_dir, index, wav_path, text):
   mel_spectrogram = audio.melspectrogram(wav).astype(np.float32)
 
   # Write the spectrograms to disk:
-  spectrogram_filename = 'btspeech-spec-%05d.npy' % index
-  mel_filename = 'btspeech-mel-%05d.npy' % index
+  spectrogram_filename = 'brandon-spec-%05d.npy' % index
+  mel_filename = 'brandon-mel-%05d.npy' % index
   np.save(os.path.join(out_dir, spectrogram_filename), spectrogram.T, allow_pickle=False)
   np.save(os.path.join(out_dir, mel_filename), mel_spectrogram.T, allow_pickle=False)
 
