@@ -401,3 +401,100 @@ Wrote 70 utterances, 56930 frames (0.20 hours)
 Max input length:  328
 Max output length: 1534
 
+## 2019-02-17: Trying a serious setup now
+
+```
+ImportError: libcublas.so.9.0: cannot open shared object file: No such file or directory
+
+
+Failed to load the native TensorFlow runtime.
+
+See https://www.tensorflow.org/install/install_sources#common_installation_problems
+
+for some common reasons and solutions.  Include the entire stack trace
+above this error message when asking for help.
+```
+
+Ugh, this again. I tried un/re-installing tensorflow-gpu and numpy, moving their dirs, etc. to no avail.
+
+It appears that `apt autoremove` broke tensorflow. It isn't around anymore:
+
+```
+bt@halide:~/dev/2nd/tacotron$ cat /usr/local/cuda/version.txt
+cat: /usr/local/cuda/version.txt: No such file or directory
+bt@halide:~/dev/2nd/tacotron$ nvcc --version
+
+Command 'nvcc' not found, but can be installed with:
+```
+
+Indeed, apt was stupid and removed the "unused" CUDA packages. I'm following the guide [from here](https://yangcha.github.io/CUDA90/) again to install CUDA 9.0 instead of the unsupported CUDA 9.1.
+
+```
+sudo apt-get purge cuda
+
+wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_9.0.176-1_amd64.deb
+wget http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64/libcudnn7_7.0.5.15-1+cuda9.0_amd64.deb
+wget http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64/libcudnn7-dev_7.0.5.15-1+cuda9.0_amd64.deb
+wget http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64/libnccl2_2.1.4-1+cuda9.0_amd64.deb
+wget http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64/libnccl-dev_2.1.4-1+cuda9.0_amd64.deb
+sudo dpkg -i cuda-repo-ubuntu1604_9.0.176-1_amd64.deb
+sudo dpkg -i libcudnn7_7.0.5.15-1+cuda9.0_amd64.deb
+sudo dpkg -i libcudnn7-dev_7.0.5.15-1+cuda9.0_amd64.deb
+sudo dpkg -i libnccl2_2.1.4-1+cuda9.0_amd64.deb
+sudo dpkg -i libnccl-dev_2.1.4-1+cuda9.0_amd64.deb
+sudo apt-get update
+sudo apt-get install cuda=9.0.176-1
+sudo apt-get install libcudnn7-dev
+sudo apt-get install libnccl-dev
+```
+
+libcudnn7-dev won't install:
+
+```
+libcudnn7-dev is already the newest version (7.0.5.15-1+cuda9.0).
+You might want to run 'apt --fix-broken install' to correct these.
+```
+
+Doing the thing. Wait, it suggests:
+
+```
+The following packages were automatically installed and are no longer required:
+  libbsd0:i386 libdrm-amdgpu1:i386 libdrm-intel1:i386 libdrm-nouveau2:i386 libdrm-radeon1:i386 libdrm2:i386
+  libedit2:i386 libelf1:i386 libexpat1:i386 libffi6:i386 libgl1:i386 libgl1-mesa-dri:i386 libglapi-mesa:i386
+  libglvnd0:i386 libglx-mesa0:i386 libglx0:i386 libllvm7:i386 libnvidia-cfg1-390 libnvidia-common-390
+  libnvidia-fbc1-390 libnvidia-fbc1-390:i386 libnvidia-gl-390 libnvidia-gl-390:i386 libnvidia-ifr1-390
+  libnvidia-ifr1-390:i386 libpciaccess0:i386 libsensors4:i386 libstdc++6:i386 libwayland-client0:i386
+  libwayland-server0:i386 libx11-6:i386 libx11-xcb1:i386 libxau6:i386 libxcb-dri2-0:i386 libxcb-dri3-0:i386
+  libxcb-glx0:i386 libxcb-present0:i386 libxcb-sync1:i386 libxcb1:i386 libxdamage1:i386 libxdmcp6:i386 libxext6:i386
+  libxfixes3:i386 libxshmfence1:i386 libxxf86vm1:i386 nvidia-dkms-390 nvidia-kernel-common-390
+  nvidia-kernel-source-390
+Use 'sudo apt autoremove' to remove them.
+The following additional packages will be installed:
+  nvidia-410
+The following NEW packages will be installed:
+  nvidia-410
+```
+
+Holding off. Besides, now this works,
+
+```
+nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2017 NVIDIA Corporation
+Built on Fri_Sep__1_21:08:03_CDT_2017
+Cuda compilation tools, release 9.0, V9.0.176
+```
+Tried importing tensorflow. Segfault,
+
+```
+>>> import tensorflow as tf
+python3: Relink `/lib/x86_64-linux-gnu/libudev.so.1' with `/lib/x86_64-linux-gnu/librt.so.1' for IFUNC symbol `clock_gettime'
+Segmentation fault (core dumped)
+```
+
+Need reboot?
+
+
+
+
+
