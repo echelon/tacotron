@@ -574,3 +574,39 @@ pip3 install -r requirements.txt
 ```
 
 Training works now.
+
+## Workflow TLDR  (2018-02-19)
+
+python preprocess.py --dataset=trump --base_dir=/home/bt/dev/2nd/tacotron
+
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 python train.py --base_dir=/home/bt/dev/2nd/tacotron --hparams="max_iters=400" --restore_step=11000
+
+python demo_server.py --checkpoint=/home/bt/dev/2nd/tacotron/logs-tacotron/model.ckpt-11000
+
+```
+python preprocess.py --dataset=trump
+
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 python train.py --base_dir=/home/bt/dev/2nd/tacotron --hparams="max_iters=400"
+
+python demo_server.py --checkpoint=/home/bt/dev/2nd/tacotron/logs-tacotron/model.ckpt-23000
+```
+
+### Transfer learning (2018-02-21)
+
+Moved the pretrained model from the github link to the `logs-tacotron` dir.
+
+Renamed the 'model.ckpt' and 'index' file with the suffix '1000':
+
+- `mv model.ckpt.data-00000-of-00001 model.ckpt-1000.data-00000-of-00001`
+- `mv model.ckpt.index model.ckpt-1000.index`
+
+After this, I `prepared` with the trump dataset and resumed training with `--restore_step=1000`.
+
+Despite the naming, it knows it's on the 441,000th step:
+
+```
+Resuming from checkpoint: /home/bt/dev/2nd/tacotron/logs-tacotron/model.ckpt-1000 at commit: None
+Generated 32 batches of size 32 in 1.687 sec
+Step 441001  [5.537 sec/step, loss=0.21357, avg_loss=0.21357]
+```
+
