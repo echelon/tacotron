@@ -7,6 +7,7 @@ from .helpers import TacoTestHelper
 from .modules import encoder_cbhg, post_cbhg, prenet
 from .rnn_wrappers import DecoderPrenetWrapper, ConcatOutputAndAttentionWrapper
 
+from pprint import pprint
 
 
 class Tacotron():

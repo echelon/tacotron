@@ -28,8 +28,10 @@ def inv_spectrogram_tensorflow(spectrogram):
   Unlike inv_spectrogram, this does NOT invert the preemphasis. The caller should call
   inv_preemphasis on the output after running the graph.
   '''
-  S = _db_to_amp_tensorflow(_denormalize_tensorflow(spectrogram) + hparams.ref_level_db)
-  return _griffin_lim_tensorflow(tf.pow(S, hparams.power))
+  return spectrogram
+  # IT LOOKS LIKE THIS REMOVES GRIFFIN-LIM: 
+  #S = _db_to_amp_tensorflow(_denormalize_tensorflow(spectrogram) + hparams.ref_level_db)
+  #return _griffin_lim_tensorflow(tf.pow(S, hparams.power))
 
 # KEEP
 def melspectrogram(y):

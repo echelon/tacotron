@@ -12,6 +12,8 @@ from models.tacotron import Tacotron
 from text import text_to_sequence
 from util import audio
 
+from PIL import Image, ImageDraw
+
 class Synthesizer:
   def load(self, checkpoint_path, model_name='tacotron'):
     print('Constructing model: %s' % model_name)
@@ -45,6 +47,37 @@ class Synthesizer:
     pprint('>>> Getting wav')
     wav = self.session.run(self.wav_output, feed_dict=feed_dict)
     pprint('>>> Gotten wav')
+    pprint(wav)
+    pprint(wav.shape)
+
+    dimensions = wav.shape
+    rows = dimensions[0]
+    cols = dimensions[1]
+
+    image = Image.new('RGB', dimensions)
+    pixels = image.load()
+    
+    minimum = wav[0,0]
+    maximum = wav[0,0]
+
+    for x in range(0, rows):
+        for y in range(0, cols):
+            if wav[x,y] > maximum:
+                maximum = wav[x,y]
+            if wav[x,y] < minimum:
+                minimum = wav[x,y]
+
+    print('Minimum: ' + str(minimum))
+    print('Maximum: ' + str(maximum))
+    
+    for x in range(0, rows):
+        for y in range(0, cols):
+            v = wav[x,y]
+            scaled = int((v - minimum) / (maximum - minimum) * 255)
+            pixels[x, y] = (scaled, scaled, scaled)
+
+    image.show()
+
     #wav = audio.inv_preemphasis(wav)
     # The audio is typically ~13 seconds unless truncated:
     #wav = wav[:audio.find_endpoint(wav)]
