@@ -610,3 +610,12 @@ Generated 32 batches of size 32 in 1.687 sec
 Step 441001  [5.537 sec/step, loss=0.21357, avg_loss=0.21357]
 ```
 
+Got to iteration 461000 on only 21:55 of Trump audio, and the results are fantastic.
+
+python demo_server.py --checkpoint=/home/bt/dev/2nd/tacotron/logs-tacotron/model.ckpt-461000
+
+Resuming,
+
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 python train.py --base_dir=/home/bt/dev/2nd/tacotron --hparams="max_iters=400" --restore_step=461000
+
+The checkpoint files are saved with the current internally-known iteration regardless of what the filenames were before.
