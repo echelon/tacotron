@@ -14,6 +14,39 @@ from util import audio
 
 from PIL import Image, ImageDraw
 
+def show_image(wav):
+    dimensions = wav.shape
+    rows = dimensions[0]
+    cols = dimensions[1]
+
+    pprint('>>> Generating image')
+    image = Image.new('RGB', dimensions)
+    pixels = image.load()
+
+    minimum = wav[0,0]
+    maximum = wav[0,0]
+
+    for x in range(0, rows):
+        for y in range(0, cols):
+            if wav[x,y] > maximum:
+                maximum = wav[x,y]
+            if wav[x,y] < minimum:
+                minimum = wav[x,y]
+
+    print('Minimum: ' + str(minimum))
+    print('Maximum: ' + str(maximum))
+
+    if maximum == minimum:
+        maximum = 1 # nb: to prevent division by zero below
+
+    for x in range(0, rows):
+        for y in range(0, cols):
+            v = wav[x,y]
+            scaled = int((v - minimum) / (maximum - minimum) * 255)
+            pixels[x, y] = (scaled, scaled, scaled)
+
+    image.show()
+
 class Synthesizer:
   def load(self, checkpoint_path, model_name='tacotron'):
     print('Constructing model: %s' % model_name)
@@ -51,42 +84,54 @@ class Synthesizer:
     pprint(wav)
     pprint(wav.shape)
 
+    show_image(wav)
+
+    pprint('>>> Resizing wav')
+    downsized_dimensions = (wav.shape[0], 80)
+    new_wav = np.zeros(shape=downsized_dimensions, dtype=np.float32)
+
+    rows = downsized_dimensions[0]
+    cols = downsized_dimensions[1]
+    for x in range(0, rows):
+        for y in range(0, cols):
+            new_wav[x,y] = wav[x,y]
+
+
+    wav = new_wav.copy()
+    pprint(wav.shape)
+
+    #pprint('>>> Modify wav with inv_preemphasis and find_endpoint')
+    #wav = audio.inv_preemphasis(wav)
+    ## The audio is typically ~13 seconds unless truncated:
+    #endpoint = audio.find_endpoint(wav)
+    #pprint('Endpoint: {}'.format(endpoint))
+    #wav = wav[:endpoint]
+
+    #pprint('>>> Transposing wav')
+    #wav = wav.transpose()
+
+    pprint('>>> Modified wav')
+    pprint(wav)
+    pprint(wav.shape)
+
+    show_image(wav)
+
+    # NB: cannot call resize() below since matrix doesn't "own" its data
+    wav = wav.copy()
+
+    pprint('>>> NUMPY RESIZE')
+    wav.resize((1000, 80))
+
+    pprint('>>> Resized wav')
+    pprint(wav)
+    pprint(wav.shape)
+
     # Save mel spectrogram
     pprint('>>> Saving spectrogram')
     np.save('mel_spectrogram.npy', wav)
 
-    dimensions = wav.shape
-    rows = dimensions[0]
-    cols = dimensions[1]
+    show_image(wav)
 
-    pprint('>>> Generating image')
-    image = Image.new('RGB', dimensions)
-    pixels = image.load()
-
-    minimum = wav[0,0]
-    maximum = wav[0,0]
-
-    for x in range(0, rows):
-        for y in range(0, cols):
-            if wav[x,y] > maximum:
-                maximum = wav[x,y]
-            if wav[x,y] < minimum:
-                minimum = wav[x,y]
-
-    print('Minimum: ' + str(minimum))
-    print('Maximum: ' + str(maximum))
-
-    for x in range(0, rows):
-        for y in range(0, cols):
-            v = wav[x,y]
-            scaled = int((v - minimum) / (maximum - minimum) * 255)
-            pixels[x, y] = (scaled, scaled, scaled)
-
-    image.show()
-
-    #wav = audio.inv_preemphasis(wav)
-    # The audio is typically ~13 seconds unless truncated:
-    #wav = wav[:audio.find_endpoint(wav)]
     out = io.BytesIO()
     audio.save_wav(wav, out)
     return out.getvalue()
