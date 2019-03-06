@@ -46,17 +46,23 @@ class Synthesizer:
     pprint(self.wav_output)
     pprint('>>> Getting wav')
     wav = self.session.run(self.wav_output, feed_dict=feed_dict)
+
     pprint('>>> Gotten wav')
     pprint(wav)
     pprint(wav.shape)
+
+    # Save mel spectrogram
+    pprint('>>> Saving spectrogram')
+    np.save('mel_spectrogram.npy', wav)
 
     dimensions = wav.shape
     rows = dimensions[0]
     cols = dimensions[1]
 
+    pprint('>>> Generating image')
     image = Image.new('RGB', dimensions)
     pixels = image.load()
-    
+
     minimum = wav[0,0]
     maximum = wav[0,0]
 
@@ -69,7 +75,7 @@ class Synthesizer:
 
     print('Minimum: ' + str(minimum))
     print('Maximum: ' + str(maximum))
-    
+
     for x in range(0, rows):
         for y in range(0, cols):
             v = wav[x,y]
