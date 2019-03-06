@@ -4,6 +4,7 @@ from hparams import hparams, hparams_debug_string
 import os
 from pprint import pprint
 
+import math
 import io
 import numpy as np
 import tensorflow as tf
@@ -92,9 +93,26 @@ class Synthesizer:
 
     rows = downsized_dimensions[0]
     cols = downsized_dimensions[1]
+
+    old_cols = wav.shape[1]
+    new_cols = new_wav.shape[1]
+
+    pprint('Rows: {}, Cols: {}'.format(rows, cols))
+
     for x in range(0, rows):
         for y in range(0, cols):
-            new_wav[x,y] = wav[x,y]
+            # Naive impl:
+            # new_wav[x,y] = wav[x,y]
+
+            y_start = math.ceil( y * ( old_cols / new_cols ) )
+            y_end = math.ceil( ( y + 1 ) * ( old_cols / new_cols ) )
+
+            accum = 0.0
+            for z in range(y_start, y_end):
+                accum += wav[x, z]
+
+            accum = accum / (y_end - y_start)
+            new_wav[x,y] = accum
 
 
     wav = new_wav.copy()
@@ -117,20 +135,19 @@ class Synthesizer:
     show_image(wav)
 
     # NB: cannot call resize() below since matrix doesn't "own" its data
-    wav = wav.copy()
-
-    pprint('>>> NUMPY RESIZE')
-    wav.resize((1000, 80))
-
-    pprint('>>> Resized wav')
-    pprint(wav)
-    pprint(wav.shape)
+    #wav = wav.copy()
+    #pprint('>>> NUMPY RESIZE')
+    #wav.resize((1000, 80))
+    #pprint('>>> Resized wav')
+    #pprint(wav)
+    #pprint(wav.shape)
 
     # Save mel spectrogram
-    pprint('>>> Saving spectrogram')
-    np.save('mel_spectrogram.npy', wav)
+    filename = 'mel_spectrogram.npy'
+    pprint('>>> Saving spectrogram as: ' + filename)
+    np.save(filename, wav)
 
-    show_image(wav)
+    #show_image(wav)
 
     out = io.BytesIO()
     audio.save_wav(wav, out)
