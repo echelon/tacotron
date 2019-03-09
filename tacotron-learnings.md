@@ -619,3 +619,9 @@ Resuming,
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 python train.py --base_dir=/home/bt/dev/2nd/tacotron --hparams="max_iters=400" --restore_step=461000
 
 The checkpoint files are saved with the current internally-known iteration regardless of what the filenames were before.
+
+## 2019-03-07 Whelp, everything just broke
+
+ImportError: libcublas.so.10.0: cannot open shared object file: No such file or directory
+
+
