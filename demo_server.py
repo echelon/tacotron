@@ -143,9 +143,10 @@ class Synthesizer:
     #pprint(wav.shape)
 
     # Save mel spectrogram
-    filename = 'mel_spectrogram.npy'
+    filename = 'spectrogram.npy'
     pprint('>>> Saving spectrogram as: ' + filename)
     np.save(filename, wav)
+    np.save('no_pickle_' + filename, wav, allow_pickle=False)
 
     #show_image(wav)
 
