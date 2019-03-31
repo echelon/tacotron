@@ -5,9 +5,12 @@ import os
 from pprint import pprint
 
 import math
+import struct
 import io
+
 import numpy as np
 import tensorflow as tf
+
 from librosa import effects
 from models.tacotron import Tacotron
 from text import text_to_sequence
@@ -47,6 +50,24 @@ def show_image(wav):
             pixels[x, y] = (scaled, scaled, scaled)
 
     image.show()
+
+def mel_to_wavernn_vocoder_input(wav, output_filename):
+    dimensions = wav.shape
+    rows = dimensions[0]
+    cols = dimensions[1]
+    pprint('>>> wavernn_vocoder - rows: {}, cols: {}'.format(rows, cols))
+
+    with open(output_filename, 'wb') as f:
+        # NB: Swapped. Rows comes first in the input format.
+        f.write(struct.pack('i', cols))
+        f.write(struct.pack('i', rows))
+
+        # NB: Swapped iteration order.
+        for y in range(0, cols):
+            for x in range(0, rows):
+                value = wav[x,y]
+                value = value * 4.0 # Attempt to scale the values.
+                f.write(struct.pack('f', value))
 
 class Synthesizer:
   def load(self, checkpoint_path, model_name='tacotron'):
@@ -133,6 +154,9 @@ class Synthesizer:
     pprint(wav.shape)
 
     show_image(wav)
+
+    pprint('>>Saving wavernn vocoder-formatted mel')
+    mel_to_wavernn_vocoder_input(wav, 'wavernn_vocoder_mel_input.mel')
 
     # NB: cannot call resize() below since matrix doesn't "own" its data
     #wav = wav.copy()
